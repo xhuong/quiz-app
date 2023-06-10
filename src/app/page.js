@@ -1,113 +1,139 @@
-import Image from 'next/image'
+"use client";
+
+import Image from "next/image";
+import PrimaryButton from "./components/PrimaryButton";
+import RobotImage from "../../public/robot.png";
+import { useEffect, useState } from "react";
+import QuizLayout from "./layouts/QuizLayout";
+import ResultLayout from "./layouts/ResultLayout";
 
 export default function Home() {
+  const [step, setStep] = useState(0);
+  const [question, setQuestion] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [quizData, setQuizData] = useState([]);
+  const [isActiveTimer, setIsActiveTimer] = useState(false);
+  const [totalTime, setTotalTime] = useState(0);
+  const [isPassedQuiz, setIsPassedQuiz] = useState(false);
+  const [incorrectAnswers, setIncorrectAnswers] = useState([]);
+
+  const handleScore = () => {
+    setScore((prev) => prev + 1);
+  };
+
+  const handlePassedQuiz = () => {
+    if (score / question?.length >= 0.5) {
+      setIsPassedQuiz(true);
+    }
+  };
+
+  const handleStartQuiz = () => {
+    setStep(1);
+    setIsActiveTimer(true);
+  };
+
+  // when clicked button next question
+  const handleNextQuestion = () => {
+    if (currentIndex > question.length - 2) {
+      setIsActiveTimer(false);
+      setStep(2);
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const handleViewIncorrectAnswers = () => {
+    const listIncorrectAnswers = quizData.filter((quizDataItem) => {
+      return quizDataItem.isCorrectAnswer === false;
+    });
+    if (listIncorrectAnswers.length > 0) {
+      setIncorrectAnswers([...listIncorrectAnswers]);
+    }
+  };
+
+  const handleReplayQuiz = () => {
+    setStep(0);
+    setQuizData([]);
+    setQuestion([]);
+    setCurrentIndex(0);
+    setIsPassedQuiz(false);
+    setScore(0);
+  };
+
+  const handleSetQuizData = (data) => {
+    if (quizData.length > 0) {
+      setQuizData((prev) => [...prev, { ...data }]);
+    } else {
+      setQuizData([{ ...data }]);
+    }
+  };
+
+  const handleCompletedQuiz = (seconds) => {
+    setTotalTime(seconds);
+  };
+
+  const fetchQuestion = () => {
+    fetch("https://opentdb.com/api.php?amount=10")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setQuestion(data.results);
+      });
+  };
+
+  useEffect(() => {
+    if (step === 0) {
+      fetchQuestion();
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (step === 2) {
+      handlePassedQuiz();
+    }
+  }, [step]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
+    <main className="min-h-screen flex items-center justify-center">
+      {step === 0 ? (
+        <div className="text-center w-96">
+          <div className="bg-white w-40 h-40 rounded-full flex justify-center items-center overflow-hidden mb-10 mx-auto">
             <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+              src={RobotImage}
+              className="scale-150 hover:rotate-12 transition-all duration-300"
+              alt="robot-image"
             />
-          </a>
+          </div>
+          <p className="text-center mb-10">
+            You must pass 50% of the questions to complete the test, each correct answer corresponds to 1 point!
+          </p>
+          <PrimaryButton onClick={handleStartQuiz}>Start quiz !</PrimaryButton>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      ) : step === 1 ? (
+        <QuizLayout
+          isActive={isActiveTimer}
+          score={score}
+          handleScore={handleScore}
+          totalQuiz={question?.length}
+          currentIndexOfQuestion={currentIndex + 1}
+          currentQuestion={question[currentIndex]}
+          handleSetQuizData={handleSetQuizData}
+          handleNextQuestion={handleNextQuestion}
+          handleCompletedQuiz={handleCompletedQuiz}
         />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      ) : (
+        <ResultLayout
+          score={score}
+          totalTime={totalTime}
+          totalQuestion={question?.length}
+          isPassedQuiz={isPassedQuiz}
+          handleReplayQuiz={handleReplayQuiz}
+          handleViewIncorrectAnswers={handleViewIncorrectAnswers}
+          listIncorrectAnswers={incorrectAnswers}
+        />
+      )}
     </main>
-  )
+  );
 }
