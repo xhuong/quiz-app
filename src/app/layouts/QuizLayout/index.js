@@ -97,12 +97,12 @@ export default function QuizLayout({
                     pointerEvents: `${indexSelected === 0 || indexSelected ? "none" : "auto"}`,
                   }}
                   key={index}
-                  className={`px-4 py-4 hover:cursor-pointer w-full text-center rounded-md bg-zinc-200 ${
+                  className={`px-4 py-4 hover:cursor-pointer w-full text-center rounded-md   ${
                     selectedAnswerStatus === 1 && index === indexCorrectAnswer
                       ? "bg-green-300 text-white"
                       : selectedAnswerStatus === 2 && index === indexSelected
                       ? "bg-red-300 text-white"
-                      : ""
+                      : "bg-zinc-200"
                   }`}
                   onClick={() => {
                     handleClickChoice(index, answer === currentQuestion.correct_answer);
