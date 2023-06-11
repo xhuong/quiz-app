@@ -36,10 +36,10 @@ export default function ResultLayout({
       )}
       <PrimaryButton onClick={handleReplayQuiz}>Replay the test?</PrimaryButton>
 
+      {IsShowIncorrectAnswers && <p>List incorrect answers:</p>}
       {IsShowIncorrectAnswers &&
         listIncorrectAnswers.map((answerItem, index) => (
           <React.Fragment>
-            <p>List incorrect answers:</p>
             <ul className="mb-2" key={index}>
               <li className="bg-slate-300 rounded-md px-2 py-2">
                 <h2 className="bg-white px-2 py-1 rounded-md mb-1">{answerItem.question}</h2>

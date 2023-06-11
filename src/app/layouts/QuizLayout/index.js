@@ -97,7 +97,7 @@ export default function QuizLayout({
                     pointerEvents: `${indexSelected === 0 || indexSelected ? "none" : "auto"}`,
                   }}
                   key={index}
-                  className={`px-4 py-4 hover:cursor-pointer w-full text-center rounded-md   ${
+                  className={`px-4 py-4 hover:cursor-pointer w-full text-center rounded-md ${
                     selectedAnswerStatus === 1 && index === indexCorrectAnswer
                       ? "bg-green-300 text-white"
                       : selectedAnswerStatus === 2 && index === indexSelected
